@@ -2,6 +2,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smartphone Addiction Quiz</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -50,20 +51,18 @@
         .btn:hover {
             background-color: #0056b3;
         }
-        .result {
-            margin-top: 20px;
-            padding: 15px;
-            background: #e9f7e9;
-            border: 1px solid #28a745;
-            border-radius: 5px;
-            color: #155724;
-            font-size: 18px;
-            display: none;
+        .chart-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
 <body>
-    <h1>Smartphone Addiction Quiz</h1>
+    <h1>Smartphone Addiction Quiz<br>（手機成癮測驗）</h1>
     <div class="quiz-container">
         <form id="quiz-form">
             <div class="question">
@@ -101,15 +100,45 @@
                 <label><input type="radio" name="q5" value="1"> Rarely（好少）</label>
                 <label><input type="radio" name="q5" value="0"> Never（從來冇）</label>
             </div>
-            <button type="button" class="btn" onclick="calculateResult()">Submit</button>
+            <button type="button" class="btn" onclick="submitQuiz()">Submit（提交）</button>
         </form>
-        <div id="result" class="result"></div>
+        <button class="btn" style="background-color: #dc3545;" onclick="resetChart()">Reset Chart（重設圖表）</button>
+    </div>
+
+    <div class="chart-container">
+        <canvas id="results-chart"></canvas>
     </div>
 
     <script>
-        function calculateResult() {
+        let addictionCounts = {
+            high: 0,
+            moderate: 0,
+            none: 0, // Changed from "low" to "none"
+        };
+
+        const ctx = document.getElementById('results-chart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Highly Addicted（高度成癮）', 'Moderately Addicted（中度成癮）', 'Not Addicted（無成癮）'],
+                datasets: [{
+                    label: 'Addiction Levels（成癮程度）',
+                    data: [0, 0, 0],
+                    backgroundColor: ['#FF6384', '#FFCE56', '#36A2EB'],
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                }
+            }
+        });
+
+        function submitQuiz() {
             const form = document.getElementById('quiz-form');
-            const resultDiv = document.getElementById('result');
             const formData = new FormData(form);
             let score = 0;
 
@@ -117,17 +146,36 @@
                 score += parseInt(value, 10);
             }
 
-            let message = '';
             if (score >= 12) {
-                message = "You are highly addicted to your smartphone. Consider taking breaks and setting boundaries.（你對手機有高度依賴。建議你試下休息同埋設定界限。）";
+                addictionCounts.high++;
             } else if (score >= 8) {
-                message = "You have moderate smartphone addiction. Try to limit screen time for a healthier balance.（你對手機有中度依賴。試下限制屏幕時間，保持健康平衡。）";
+                addictionCounts.moderate++;
             } else {
-                message = "You have low smartphone addiction. Keep up the good habits!（你對手機嘅依賴好低，請繼續保持呢個好習慣！）";
+                addictionCounts.none++; // Updated for "Not Addicted"
             }
 
-            resultDiv.textContent = message;
-            resultDiv.style.display = 'block';
+            // Update the chart
+            chart.data.datasets[0].data = [
+                addictionCounts.high,
+                addictionCounts.moderate,
+                addictionCounts.none
+            ];
+            chart.update();
+
+            // Reset the form for the next submission
+            form.reset();
+        }
+
+        function resetChart() {
+            const password = prompt('Enter the password to reset the chart: （輸入密碼以重設圖表：）');
+            if (password === '85201') {
+                addictionCounts = { high: 0, moderate: 0, none: 0 };
+                chart.data.datasets[0].data = [0, 0, 0];
+                chart.update();
+                alert('Chart has been reset. （圖表已重設。）');
+            } else {
+                alert('Incorrect password. （密碼錯誤。）');
+            }
         }
     </script>
 
